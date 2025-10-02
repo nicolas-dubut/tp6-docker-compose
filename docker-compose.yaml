@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: tpdb
+      POSTGRES_USER: tpuser
+      POSTGRES_PASSWORD: tppass
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+
+  api:
+    build: ./api
+    environment:
+      POSTGRES_DB: tpdb
+      POSTGRES_USER: tpuser
+      POSTGRES_PASSWORD: tppass
+    ports:
+      - "5001:5000"
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  web:
+    image: nginx:alpine
+    ports:
+      - "8083:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - backend
+    depends_on:
+      - api
+
+volumes:
+  dbdata:
+
+networks:
+  backend:
+
